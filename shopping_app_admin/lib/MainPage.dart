@@ -4,17 +4,17 @@ import 'package:titled_navigation_bar/titled_navigation_bar.dart';
 
 import 'Forms.dart';
 import 'Orders.dart';
+import 'offers.dart';
+
 class MainPage extends StatefulWidget {
   @override
   _MainPageState createState() => _MainPageState();
 }
+
 class _MainPageState extends State<MainPage> {
   //For bottom nav
   int _selectedPage = 0;
-  var _pageOptions = [
-      Forms(),
-      Orders()
-  ];
+  var _pageOptions = [Forms(), Orders(), offers()];
   var _pageController = new PageController(initialPage: 0);
 
   @override
@@ -23,7 +23,8 @@ class _MainPageState extends State<MainPage> {
         appBar: AppBar(
           title: Text(
             'Khati Khuwa',
-            style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold,color: Colors.white),
+            style: TextStyle(
+                fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
           ),
         ),
         body: PageView(
@@ -38,7 +39,7 @@ class _MainPageState extends State<MainPage> {
         bottomNavigationBar: TitledBottomNavigationBar(
             reverse: true,
             currentIndex:
-            _selectedPage, // Use this to update the Bar giving a position
+                _selectedPage, // Use this to update the Bar giving a position
             onTap: (index) {
               setState(() {
                 _selectedPage = index;
@@ -47,9 +48,21 @@ class _MainPageState extends State<MainPage> {
               });
             },
             items: [
-              TitledNavigationBarItem(title: Text('Form',style: TextStyle(fontSize: 16,fontWeight: FontWeight.w300)), icon: Icons.receipt),
-              TitledNavigationBarItem(title: Text('Orders',style: TextStyle(fontSize: 16,fontWeight: FontWeight.w300)), icon: Icons.shopping_cart),
-            ])
-    );
+              TitledNavigationBarItem(
+                  title: Text('Form',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w300)),
+                  icon: Icons.receipt),
+              TitledNavigationBarItem(
+                  title: Text('Orders',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w300)),
+                  icon: Icons.shopping_cart),
+              TitledNavigationBarItem(
+                  icon: Icons.art_track_outlined,
+                  title: Text('Offers',
+                      style: TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w300))),
+            ]));
   }
 }
