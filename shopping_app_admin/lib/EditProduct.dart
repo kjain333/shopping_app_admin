@@ -1,23 +1,29 @@
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:toast/toast.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-class CloudStorageResult {
-  final String imageUrl;
-  final String imageFileName;
-  CloudStorageResult({this.imageUrl, this.imageFileName});
-}
-class Forms extends StatefulWidget{
-  _Form createState() => _Form();
+import 'package:toast/toast.dart';
+
+class EditProduct extends StatefulWidget{
+  QueryDocumentSnapshot snapshot;
+  String id;
+  EditProduct(this.snapshot,this.id);
+  @override
+  State<StatefulWidget> createState() {
+   return  _EditProduct(snapshot,id);
+  }
 }
 List<String> categories = ["All","Traditional Clothes","Jewellery","Pickles","Spices","Hand Craft","Food Items","Daily Needs"];
 List<bool> selected = [true,false,false,false,false,false,false,false];
 List<int> index = [0,1,2,3,4,5,6,7];
 bool loading = false;
-class _Form extends State<Forms>{
+class _EditProduct extends State<EditProduct>{
+  QueryDocumentSnapshot snapshot;
+  String id;
+  _EditProduct(this.snapshot,this.id);
   final databaseReference = Firestore.instance;
   TextEditingController title = new TextEditingController();
   TextEditingController subtitle = new TextEditingController();
@@ -44,6 +50,12 @@ class _Form extends State<Forms>{
     @required String title,
   }) async {
     var imageFileName = title + DateTime.now().millisecondsSinceEpoch.toString();
+    print((url.split('/').last.split('?').first).replaceAll("%20", " "));
+    final StorageReference firebaseStorage = FirebaseStorage.instance.ref().child(url.split('/').last.split('?').first.replaceAll("%20", " "));
+    firebaseStorage.delete();
+    setState(() {
+      url=null;
+    });
     final StorageReference firebaseStorageRef = FirebaseStorage.instance
         .ref()
         .child(imageFileName);
@@ -57,33 +69,50 @@ class _Form extends State<Forms>{
 
     }
   }
-  void createRecord() async {
+  void createRecord(String id) async {
     List<String> selectedcategory = new List();
     for(int i=0;i<selected.length;i++)
-      {
-        if(selected[i])
-          selectedcategory.add(categories[i]);
-      }
-    DocumentReference ref = await databaseReference.collection("products").add({'title': title.text,'subtitle': subtitle.text,'price': price.text,'description': description.text,'categories': selectedcategory,'url': url,'id': DateTime.now().toString()}).then((value){
-        Toast.show("Product Added Succssfully", context,duration: Toast.LENGTH_LONG,gravity: Toast.BOTTOM,textColor: Colors.white,backgroundColor: Colors.green,);
-        setState(() {
-          title.clear();
-          subtitle.clear();
-          description.clear();
-          price.clear();
-          url = null;
-          for(int i=0;i<selected.length;i++)
-            {
-              selected[i]=false;
-            }
-          selected[0]=true;
-          loading = false;
-        });
-        return null;
-      },onError: (error){
+    {
+      if(selected[i])
+        selectedcategory.add(categories[i]);
+    }
+    DocumentReference ref = await databaseReference.collection("products").doc(id).set({'title': title.text,'subtitle': subtitle.text,'price': price.text,'description': description.text,'categories': selectedcategory,'url': url,'id': DateTime.now().toString()}).then((value){
+      Toast.show("Product Updated Succssfully", context,duration: Toast.LENGTH_LONG,gravity: Toast.BOTTOM,textColor: Colors.white,backgroundColor: Colors.green,);
+      setState(() {
+        title.clear();
+        subtitle.clear();
+        description.clear();
+        price.clear();
+        url = null;
+        for(int i=0;i<selected.length;i++)
+        {
+          selected[i]=false;
+        }
+        selected[0]=true;
+        loading = false;
+      });
+      return null;
+    },onError: (error){
       loading = false;
       Toast.show(error.toString(), context,duration: Toast.LENGTH_LONG,gravity: Toast.BOTTOM,textColor: Colors.white,backgroundColor: Colors.red,);
     });
+  }
+  @override
+  void initState() {
+    title.text = snapshot.get('title');
+    subtitle.text = snapshot.get('subtitle');
+    description.text = snapshot.get('description');
+    url = snapshot.get('url');
+    price.text = snapshot.get('price');
+    List<dynamic> snapshotcategories = snapshot.get('categories');
+    for(int i=0;i<snapshotcategories.length;i++)
+      {
+        if(categories.contains(snapshotcategories[i].toString()))
+          {
+            selected[categories.indexOf(snapshotcategories[i].toString())]=true;
+          }
+      }
+    super.initState();
   }
   @override
   Widget build(BuildContext context) {
@@ -257,20 +286,37 @@ class _Form extends State<Forms>{
                     color: Colors.blueAccent,
                     onPressed: (){
                       if(_formkey.currentState.validate()&&url!=null)
-                        {
-                          setState(() {
-                            loading = true;
-                          });
-                          createRecord();
-                        }
+                      {
+                        setState(() {
+                          loading = true;
+                        });
+                        createRecord(id);
+                      }
                       else if(url==null)
-                        {
-                          Toast.show("Please select an image", context,duration: Toast.LENGTH_LONG,gravity: Toast.BOTTOM,textColor: Colors.white,backgroundColor: Colors.red,);
-                        }
+                      {
+                        Toast.show("Please select an image", context,duration: Toast.LENGTH_LONG,gravity: Toast.BOTTOM,textColor: Colors.white,backgroundColor: Colors.red,);
+                      }
                     },
                     child: Padding(
                       padding: EdgeInsets.all(10),
-                      child: Text("Submit",style: TextStyle(color: Colors.white),),
+                      child: Text("Edit",style: TextStyle(color: Colors.white),),
+                    ),
+                  ),
+                  RaisedButton(
+                    color: Colors.blueAccent,
+                    onPressed: (){
+                      final StorageReference firebaseStorage = FirebaseStorage.instance.ref().child(url.split('/').last.split('?').first.replaceAll("%20", " "));
+                      firebaseStorage.delete();
+                      setState(() {
+                        url=null;
+                      });
+                      databaseReference.collection("products").doc(id).delete();
+                      Toast.show("Delete successful", context,backgroundColor: Colors.green,duration: Toast.LENGTH_LONG,gravity: Toast.BOTTOM);
+                      Navigator.pop(context);
+                      },
+                    child: Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Text("Delete",style: TextStyle(color: Colors.white),),
                     ),
                   )
                 ],
@@ -282,25 +328,26 @@ class _Form extends State<Forms>{
   }
   Widget MyChip(int index){
     return Padding(
-      padding: EdgeInsets.all(10),
-      child: GestureDetector(
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.lightBlueAccent),
-            color: (selected[index])?Colors.lightBlueAccent:Colors.transparent,
+        padding: EdgeInsets.all(10),
+        child: GestureDetector(
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.lightBlueAccent),
+              color: (selected[index])?Colors.lightBlueAccent:Colors.transparent,
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(10),
+              child: Text(categories[index],style: TextStyle(fontSize: 16,fontWeight: FontWeight.w300,color: (selected[index])?Colors.white:Colors.lightBlueAccent),),
+            ),
           ),
-          child: Padding(
-            padding: EdgeInsets.all(10),
-            child: Text(categories[index],style: TextStyle(fontSize: 16,fontWeight: FontWeight.w300,color: (selected[index])?Colors.white:Colors.lightBlueAccent),),
-          ),
-        ),
-        onTap: (){
-          setState(() {
-            selected[index] = !selected[index];
-          });
-        },
-      )
+          onTap: (){
+            setState(() {
+              selected[index] = !selected[index];
+            });
+          },
+        )
     );
   }
+  
 }

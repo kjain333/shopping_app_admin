@@ -199,6 +199,7 @@ class _offersState extends State<offers> {
                       padding: EdgeInsets.all(20),
                       child: TextFormField(
                         controller: price,
+                        keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                             labelText: "discount",
                             hintText: "Enter amount of discount if discount",
@@ -224,6 +225,11 @@ class _offersState extends State<offers> {
                       padding: EdgeInsets.all(20),
                       child: TextFormField(
                         controller: coupon,
+                        validator: (text){
+                          if(text.isEmpty||text==null)
+                            return "Coupon Code is required";
+                          return null;
+                        },
                         decoration: InputDecoration(
                             labelText: "Coupon code",
                             hintText:

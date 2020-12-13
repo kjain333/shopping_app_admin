@@ -79,6 +79,8 @@ class _Orders extends State<Orders>{
               child: Text(d['user']['email']+"\t"+d['user']['phone'],style: TextStyle(fontSize: 15,fontWeight: FontWeight.w300),)),
           Padding(padding: EdgeInsets.all(0),
               child: Text(d['address'],style: TextStyle(fontSize: 13,fontWeight: FontWeight.w300),)),
+          Padding(padding: EdgeInsets.all(0),
+              child: Text(d['coupon'],style: TextStyle(fontSize: 15,fontWeight: FontWeight.w300),)),
           Column(
             children: products[data.indexOf(d)].map((e)=>DataTile(e,quantities[data.indexOf(d)][products[data.indexOf(d)].indexOf(e)])).toList(),
           )
