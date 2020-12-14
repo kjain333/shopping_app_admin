@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shopping_app_admin/AllProducts.dart';
 import 'package:titled_navigation_bar/titled_navigation_bar.dart';
-
+import 'package:shopping_app_admin/AllOffersGreetings.dart';
 import 'Forms.dart';
 import 'Orders.dart';
 import 'offers.dart';
@@ -15,19 +15,23 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   //For bottom nav
   int _selectedPage = 0;
-  var _pageOptions = [AllProducts(), Orders(), offers()];
+  var _pageOptions = [AllProducts(), Orders(), AllOffers()];
   var _pageController = new PageController(initialPage: 0);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: (_selectedPage!=0)?AppBar(
-          title: Text(
-            'Khati Khuwa',
-            style: TextStyle(
-                fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-        ):null,
+        appBar: (_selectedPage != 0)
+            ? AppBar(
+                title: Text(
+                  'Khati Khuwa',
+                  style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
+              )
+            : null,
         body: PageView(
           children: _pageOptions,
           onPageChanged: (index) {

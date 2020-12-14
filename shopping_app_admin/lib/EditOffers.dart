@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,39 +6,27 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:toast/toast.dart';
 
-class EditProduct extends StatefulWidget {
+class EditOffer extends StatefulWidget {
   QueryDocumentSnapshot snapshot;
   String id;
-  EditProduct(this.snapshot, this.id);
+  EditOffer(this.snapshot, this.id);
   @override
   State<StatefulWidget> createState() {
-    return _EditProduct(snapshot, id);
+    return _EditOffer(snapshot, id);
   }
 }
 
-List<String> categories = [
-  "All",
-  "Traditional Clothes",
-  "Jewellery",
-  "Pickles",
-  "Spices",
-  "Hand Craft",
-  "Food Items",
-  "Daily Needs"
-];
-List<bool> selected = [true, false, false, false, false, false, false, false];
-List<int> index = [0, 1, 2, 3, 4, 5, 6, 7];
 bool loading = false;
 
-class _EditProduct extends State<EditProduct> {
+class _EditOffer extends State<EditOffer> {
   QueryDocumentSnapshot snapshot;
   String id;
-  _EditProduct(this.snapshot, this.id);
+  _EditOffer(this.snapshot, this.id);
   final databaseReference = Firestore.instance;
   TextEditingController title = new TextEditingController();
-  TextEditingController subtitle = new TextEditingController();
   TextEditingController price = new TextEditingController();
   TextEditingController description = new TextEditingController();
+  TextEditingController coupon = new TextEditingController();
   String url;
   final _formkey = GlobalKey<FormState>();
   File _image;
@@ -91,22 +78,17 @@ class _EditProduct extends State<EditProduct> {
   }
 
   void createRecord(String id) async {
-    List<String> selectedcategory = new List();
-    for (int i = 0; i < selected.length; i++) {
-      if (selected[i]) selectedcategory.add(categories[i]);
-    }
     DocumentReference ref =
-        await databaseReference.collection("products").doc(id).set({
+        await databaseReference.collection("offer_greeting").doc(id).set({
       'title': title.text,
-      'subtitle': subtitle.text,
       'price': price.text,
       'description': description.text,
-      'categories': selectedcategory,
+      'coupon': coupon.text,
       'url': url,
-      'id': DateTime.now().toString()
+      'id': id
     }).then((value) {
       Toast.show(
-        "Product Updated Succssfully",
+        "Offer Updated Succssfully",
         context,
         duration: Toast.LENGTH_LONG,
         gravity: Toast.BOTTOM,
@@ -115,14 +97,10 @@ class _EditProduct extends State<EditProduct> {
       );
       setState(() {
         title.clear();
-        subtitle.clear();
         description.clear();
         price.clear();
+        coupon.clear();
         url = null;
-        for (int i = 0; i < selected.length; i++) {
-          selected[i] = false;
-        }
-        selected[0] = true;
         loading = false;
       });
       return null;
@@ -142,16 +120,10 @@ class _EditProduct extends State<EditProduct> {
   @override
   void initState() {
     title.text = snapshot.get('title');
-    subtitle.text = snapshot.get('subtitle');
     description.text = snapshot.get('description');
     url = snapshot.get('url');
     price.text = snapshot.get('price');
-    List<dynamic> snapshotcategories = snapshot.get('categories');
-    for (int i = 0; i < snapshotcategories.length; i++) {
-      if (categories.contains(snapshotcategories[i].toString())) {
-        selected[categories.indexOf(snapshotcategories[i].toString())] = true;
-      }
-    }
+    coupon.text = snapshot.get('coupon');
     super.initState();
   }
 
@@ -180,7 +152,7 @@ class _EditProduct extends State<EditProduct> {
                       height: 30,
                     ),
                     Text(
-                      "Edit / Delete Product information",
+                      "Edit or Delete offer",
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
@@ -217,15 +189,15 @@ class _EditProduct extends State<EditProduct> {
                     Padding(
                       padding: EdgeInsets.all(20),
                       child: TextFormField(
-                        controller: subtitle,
+                        controller: coupon,
                         validator: (text) {
                           if (text == null || text.isEmpty)
                             return "Field cannot be empty";
                           return null;
                         },
                         decoration: InputDecoration(
-                            labelText: "Short Description",
-                            hintText: "Provide short description",
+                            labelText: "Coupon code",
+                            hintText: "Provide a coupon code",
                             focusedErrorBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(5),
                                 borderSide:
@@ -306,10 +278,6 @@ class _EditProduct extends State<EditProduct> {
                                     BorderSide(color: Colors.grey.shade400))),
                       ),
                     ),
-                    Wrap(
-                      direction: Axis.horizontal,
-                      children: index.map((e) => MyChip(e)).toList(),
-                    ),
                     RaisedButton(
                       color: Colors.blueAccent,
                       onPressed: getImage,
@@ -375,7 +343,7 @@ class _EditProduct extends State<EditProduct> {
                           url = null;
                         });
                         databaseReference
-                            .collection("products")
+                            .collection("offer_greeting")
                             .doc(id)
                             .delete();
                         Toast.show("Delete successful", context,
@@ -397,38 +365,5 @@ class _EditProduct extends State<EditProduct> {
               )),
       ),
     );
-  }
-
-  Widget MyChip(int index) {
-    return Padding(
-        padding: EdgeInsets.all(10),
-        child: GestureDetector(
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.lightBlueAccent),
-              color: (selected[index])
-                  ? Colors.lightBlueAccent
-                  : Colors.transparent,
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(10),
-              child: Text(
-                categories[index],
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w300,
-                    color: (selected[index])
-                        ? Colors.white
-                        : Colors.lightBlueAccent),
-              ),
-            ),
-          ),
-          onTap: () {
-            setState(() {
-              selected[index] = !selected[index];
-            });
-          },
-        ));
   }
 }

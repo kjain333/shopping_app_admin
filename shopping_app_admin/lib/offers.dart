@@ -12,12 +12,12 @@ class CloudStorageResult {
   CloudStorageResult({this.offerimageUrl, this.offerimageFileName});
 }
 
-class offers extends StatefulWidget {
+class Offers extends StatefulWidget {
   @override
   _offersState createState() => _offersState();
 }
 
-class _offersState extends State<offers> {
+class _offersState extends State<Offers> {
   final databaseReference = Firestore.instance;
   TextEditingController title = new TextEditingController();
   TextEditingController price = new TextEditingController();
@@ -70,7 +70,7 @@ class _offersState extends State<offers> {
     DocumentReference ref =
         await databaseReference.collection("offer_greeting").add({
       'title': title.text,
-      'coupon code': coupon.text,
+      'coupon': coupon.text,
       'price': price.text,
       'description': description.text,
       'url': url,
@@ -225,8 +225,8 @@ class _offersState extends State<offers> {
                       padding: EdgeInsets.all(20),
                       child: TextFormField(
                         controller: coupon,
-                        validator: (text){
-                          if(text.isEmpty||text==null)
+                        validator: (text) {
+                          if (text.isEmpty || text == null)
                             return "Coupon Code is required";
                           return null;
                         },
